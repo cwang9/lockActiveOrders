@@ -25,13 +25,17 @@ function lolacademy_settings(){
 	this.region = "NA";
 	this.minimalAmount = 100;
 	this.found = true;
+	this.rank = "B";
+	this.id = null;
+	this.password = null;
+	
 }
 
 var user_preference = new lolacademy_settings();
 
 function search_for_matched_order_in_table(bTable){
 	blackList = new Array()
-	console.log("search_for_matched_order_in_table...");
+	//console.log("search_for_matched_order_in_table...");
 	// way to add "bad" orders
 	//blackList.push("15546")
 
@@ -49,22 +53,24 @@ function search_for_matched_order_in_table(bTable){
 			continue;
 	   }
 	   // NA/OCE/TW/EUW
-	   var server = bRow.item(1).innerText
+	   var server = bRow.item(1).innerText;
 	   // B/S/G/P/D + I/II/III/IV/V + XX LP
-	   var rank = bRow.item(2).innerText
+	   var rank = bRow.item(2).innerText;
+	   
+	   user_preference.rank = rank.substring(0,0);
 	   // numeric number 1+
-	   var winsLeft = bRow.item(3).innerText
+	   var winsLeft = bRow.item(3).innerText;
 	   
 	   // in USD
-	   var moneyPerWin = bRow.item(4).innerText
-	   moneyPerWin = moneyPerWin.substring(1, moneyPerWin.indexOf(".")+3)
+	   var moneyPerWin = bRow.item(4).innerText;
+	   moneyPerWin = moneyPerWin.substring(1, moneyPerWin.indexOf(".")+3);
 	   
-	   var progress = bRow.item(5).innerText
-	   var status = bRow.item(6).innerText
-	   status = status.trim()
-	   var unlockURL = ""
+	   var progress = bRow.item(5).innerText;
+	   var status = bRow.item(6).innerText;
+	   status = status.trim();
+	   var unlockURL = "";
 	   if (status == "Lock account"){ // can lock account
-		unlockURL = bRow.item(6).getElementsByTagName("a")[0].href
+			unlockURL = bRow.item(6).getElementsByTagName("a")[0].href;
 		//console.log(unlockURL)
 		
 	   }
@@ -76,12 +82,9 @@ function search_for_matched_order_in_table(bTable){
 	   if (server == user_preference.region  && parseFloat(moneyPerWin) >= parseFloat(user_preference.minimalAmount) && status == "Lock account"){
 			if (blackList.indexOf(orderNumber) == -1){
 				//console.log("Order found");
-				alert( moneyPerWin +  "," + user_preference.minimalAmount);
-				alert(moneyPerWin >= user_preference.minimalAmount);
-				alert("found" + orderNumber + " server: " +server + "moneyPerWin: " + moneyPerWin)
 				user_preference.found = true;
 				chrome.storage.local.set({'user_preference': user_preference});
-				chrome.extension.sendRequest({action: "found"});
+				
 				
 				window.location.href = unlockURL
 			}
@@ -130,15 +133,38 @@ function search_for_order_and_refresh(){
 	}
 }
 
-
+var currentGame;
+var nextElement;
 chrome.storage.local.get('user_preference', function(result){
 	user_preference = result.user_preference;
-	if(!user_preference.found){
-	search_for_order_and_refresh();
-}
-	if (document.cookie.indexOf("user=") < 0){
-		alert("please logon lolacademy");
+	
+	if (document.URL.indexOf("activeorders.php") > -1 ){
+		if(!user_preference.found){
+			chrome.extension.sendRequest({action: "start"});
+			search_for_order_and_refresh();
+		}
+		if (document.cookie.indexOf("user=") < 0){
+			alert("please logon lolacademy");
+		}
 	}
+	else if ( document.URL.indexOf("order.php?id=") > -1 ){
+		currentGame = document.getElementById("currentGame");
+		nextElement = currentGame.nextSibling;
+		while( (!user_preference.id || !user_preference.password) && nextElement!== null){
+			if (typeof nextElement.innerText == "undefined" &&  nextElement.textContent.trim().indexOf("ID:") > -1 ){
+				console.log( nextElement.textContent.trim().substring(4));
+				user_preference.id  = nextElement.textContent.trim().substring(4);
+			}
+			
+			if (typeof nextElement.innerText == "undefined"  && nextElement.textContent.trim().indexOf("PW:") > -1 ){
+				console.log( nextElement.textContent.trim().substring(4));
+				user_preference.password  = nextElement.textContent.trim().substring(4);
+			}
+			nextElement = nextElement.nextSibling;
+		}
+		chrome.extension.sendRequest({action: "found", user_preference: user_preference});
+	}
+	
 
 });
 
@@ -192,9 +218,11 @@ chrome.extension.onRequest.addListener(function(request, sender, callback)
 			chrome.extension.sendRequest({action: "start"});
 			chrome.storage.local.get('user_preference', function(result){
 				user_preference = result.user_preference;
-				if(!user_preference.found){
-				search_for_order_and_refresh();
-			}
+				if (document.URL.indexOf("activeorders.php") > -1 ){
+					if(!user_preference.found){
+						search_for_order_and_refresh();
+					}
+				}
 
 			});
 			
@@ -222,8 +250,15 @@ chrome.extension.onRequest.addListener(function(request, sender, callback)
 			
 		case "stop":
 			//stop_refresh();
-			localStorage['found']=  "TRUE";
+			chrome.storage.local.get('user_preference', function(result){
+				user_preference.found = true;
+				chrome.storage.local.set({'user_preference':user_preference});
+				chrome.extension.sendRequest({action: "stop"});
+				
+
+			});
 			break;
+			
 
 			
     }

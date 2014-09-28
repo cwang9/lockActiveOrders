@@ -5,6 +5,10 @@ function lolacademy_settings(){
 	this.region = "NA";
 	this.minimalAmount = 100;
 	this.found = true;
+	this.rank = "B";
+	this.id = null;
+	this.password = null;
+	
 }
 
 
@@ -70,12 +74,12 @@ window.onload = function(){
 			for (var i = 0; i < tabs.length; i++) {
 				if (tabs[i].url == "https://www.lol-academy.net/activeorders.php"){
 					createTab = false;
-					chrome.tabs.update(tabs[i].id, {selected: true});
+					//chrome.tabs.update(tabs[i].id, {selected: true});
 					start_extension();
 				}
 			}
 			if(createTab){
-				chrome.tabs.create({url:"https://www.lol-academy.net/activeorders.php"},function(tab){
+				chrome.tabs.create({url:"https://www.lol-academy.net/activeorders.php", selected:false},function(tab){
 					start_extension();
 				});
 			}

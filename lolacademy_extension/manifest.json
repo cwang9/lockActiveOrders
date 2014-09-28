@@ -14,13 +14,14 @@
 	  "run_at":"document_end"
 	} ],
 	"permissions": [
-		"tabs", "*://www.lol-academy.net/*",
+		"tabs",
 		"tts",
 		"ttsEngine",
-		"storage"
+		"storage",
+		"notifications"
 	],
 	"background": {
 		"scripts": ["background.js"]
 	},
-	"web_accessible_resources":["testing.mp3"]
+	"web_accessible_resources":["testing.mp3","S.png","B.png","G.png","P.png","D.png"]
 }
