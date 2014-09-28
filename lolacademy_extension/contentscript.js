@@ -351,30 +351,30 @@ function search_for_order_and_refresh(){
 	
 	if (localStorage['found'] == "FALSE"){
 	
-		if (typeof oi != "undefined"){
-		//alert("can't find, going to refresh");
-		// can't find , sleep , refresh
-		//
-		var observer = new MutationObserver(function(mutations) {
-			var rTable = document.getElementById('boostingOrders').tBodies[0];
-			count++;
-			console.log("Still searching ... " + count);
-			search_for_matched_order_in_table(rTable);
-			/*
-			  mutations.forEach(function(mutation) {
-				console.log(mutation);
-				console.log(mutation.target);
-				console.log(mutation.type);
+		if (refresh_time_interval == 0){
+			//alert("can't find, going to refresh");
+			// can't find , sleep , refresh
+			//
+			var observer = new MutationObserver(function(mutations) {
+				var rTable = document.getElementById('boostingOrders').tBodies[0];
+				count++;
+				console.log("Still searching ... " + count);
+				search_for_matched_order_in_table(rTable);
+				/*
+				  mutations.forEach(function(mutation) {
+					console.log(mutation);
+					console.log(mutation.target);
+					console.log(mutation.type);
 
-			  });    
-			 */
-		});
-		 
-		// configuration of the observer:
-		var config = { attributes: true, childList: true, characterData: true, subtrue: true };
-		console.log("going to start observer");
-		// pass in the target node, as well as the observer options
-		observer.observe(tableWrapper, config);
+				  });    
+				 */
+			});
+			 
+			// configuration of the observer:
+			var config = { attributes: true, childList: true, characterData: true, subtrue: true };
+			console.log("going to start observer");
+			// pass in the target node, as well as the observer options
+			observer.observe(tableWrapper, config);
 		}else{
 			setTimeout(function(){location.reload();} , refresh_time_interval);
 		}
