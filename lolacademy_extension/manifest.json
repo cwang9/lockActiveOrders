@@ -16,7 +16,8 @@
 	"permissions": [
 		"tabs", "*://www.lol-academy.net/*",
 		"tts",
-		"ttsEngine"
+		"ttsEngine",
+		"storage"
 	],
 	"background": {
 		"scripts": ["background.js"]
