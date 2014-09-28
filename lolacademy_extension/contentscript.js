@@ -98,28 +98,14 @@ function search_for_order_and_refresh(){
     search_for_matched_order_in_table(bTable);
 	   
 	var tableWrapper = document.getElementById('boostingOrders');
-
-	   
 	
 	if (!user_preference.found){
-	
 		if (user_preference.refresh_time_interval == 0){
-			//alert("can't find, going to refresh");
-			// can't find , sleep , refresh
-			//
 			var observer = new MutationObserver(function(mutations) {
 				var rTable = document.getElementById('boostingOrders').tBodies[0];
 				count++;
 				console.log("Still searching ... " + count);
 				search_for_matched_order_in_table(rTable);
-				/*
-				  mutations.forEach(function(mutation) {
-					console.log(mutation);
-					console.log(mutation.target);
-					console.log(mutation.type);
-
-				  });    
-				 */
 			});
 			 
 			// configuration of the observer:
@@ -169,52 +155,14 @@ chrome.storage.local.get('user_preference', function(result){
 });
 
 
-/*
-if (localStorage.getItem("found") != null){
-	found = localStorage['found'];
-	refresh_time_interval = localStorage['refresh_time_interval'];
-	minimalAmount = localStorage['minimalAmount'];
-	region = localStorage['region'];
-		
-	if (found == "FALSE"){
-		search_for_order_and_refresh();
-	}
-}
 
-console.log("Testing chrome storage");
-chrome.storage.local.get('refresh_time_interval',function(result){
-    console.log('chrome refresh_time_interval',result);
-	console.log(result);
-    //console output = myVariableKeyName {}
-});
-*/
 chrome.extension.onRequest.addListener(function(request, sender, callback)
 {
 	
-	/*
-	// get most updated stockStorage
-	stockStorage = localStorage.getItem("stockStorage");
-	if( stockStorage == null || stockStorage == undefined){
-		stockStorage = new Object();
-	}else{
-		stockStorage = JSON.parse(stockStorage);
-	}
-	*/
-	//checkExistStockInfo();
     switch(request.action)
     {
         case "start":
-			 //alert("contentscript received something, going to send a stop sign");
-			 /*
-			refresh_time_interval = request.refresh_time_interval;
-			minimalAmount = request.minimalAmount;
-			region = request.region;
-			
-			localStorage['found']=  "FALSE";
-			localStorage['refresh_time_interval'] = refresh_time_interval;
-			localStorage['minimalAmount'] = minimalAmount ;
-			localStorage['region'] = region;
-			*/
+
 			chrome.extension.sendRequest({action: "start"});
 			chrome.storage.local.get('user_preference', function(result){
 				user_preference = result.user_preference;
@@ -225,42 +173,14 @@ chrome.extension.onRequest.addListener(function(request, sender, callback)
 				}
 
 			});
-			
-			
-			/*
-			
-			refresh_toggle = true;
-			refresh_new_time_interval = request.refresh_time_interval;
-			//alert("refresh_toggle: " + refresh_toggle + " refresh_new_time_interval: " + refresh_new_time_interval);
-			if( isNumber(refresh_new_time_interval)){
-				refresh_time_interval = refresh_new_time_interval;
-			}
-			
-			
-			stockStorage[stock_code].refresh_toggle = refresh_toggle;
-			stockStorage[stock_code].refresh_time_interval = refresh_time_interval;
-			// update localStorage
-			stockStorage =  JSON.stringify(stockStorage);
-			localStorage.setItem("stockStorage", stockStorage);
-			
-			chrome.extension.sendRequest({action: "stop"});
-			refresh_reference = setInterval("run_script()", refresh_time_interval);
-			*/
 			break;
-			
 		case "stop":
-			//stop_refresh();
 			chrome.storage.local.get('user_preference', function(result){
 				user_preference.found = true;
 				chrome.storage.local.set({'user_preference':user_preference});
 				chrome.extension.sendRequest({action: "stop"});
-				
-
 			});
 			break;
-			
-
-			
     }
 });
 
