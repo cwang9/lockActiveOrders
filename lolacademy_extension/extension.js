@@ -1,5 +1,5 @@
 
-var user_preference = new lolacademy_settings();
+var user_preference ;
 
 function isNumber(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);

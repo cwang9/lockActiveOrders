@@ -33,7 +33,7 @@ chrome.extension.onRequest.addListener( function(request, sender, sendResponse) 
 		});
 		chrome.notifications.onClicked.addListener(function(){
 		});
-		chrome.tts.speak('Lol academy Order received', {'rate':0.9});
+		chrome.tts.speak('Hao, order received', {'rate':0.9});
 		
 	}
 	
