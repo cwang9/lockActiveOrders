@@ -1,13 +1,3 @@
-function lolacademy_settings(){
-	this.refresh_time_interval = 10000;
-	this.region = "NA";
-	this.minimalAmount = 100;
-	this.found = true;
-	this.rank = "B";
-	this.id = "DUMMY";
-	this.password = "DUMMY";
-	
-}
 
 var user_preference; 
 chrome.extension.onRequest.addListener( function(request, sender, sendResponse) {
@@ -33,7 +23,7 @@ chrome.extension.onRequest.addListener( function(request, sender, sendResponse) 
 		});
 		chrome.notifications.onClicked.addListener(function(){
 		});
-		chrome.tts.speak('Hao, order received', {'rate':0.9});
+		chrome.tts.speak( user_preference.siteUser + ', order received', {'rate':0.9});
 		
 	}
 	

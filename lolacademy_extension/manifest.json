@@ -1,11 +1,17 @@
 {
 	"name": "lolacademcy Extension",
+	"short_name" : "lolaca",
 	"version": "1.0",
 	"manifest_version": 2,
-	"description": "to auto lock account",
+	"description": "to auto lock lol academy account",
 	"browser_action": {
-	"default_icon": "start-icon.png",
-	"default_popup": "popup.html"
+		"default_icon": "start-icon.png",
+		"default_popup": "popup.html"
+	},
+	"icons": { 
+		"16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png" 
 	},
 
 	"content_scripts": [ {

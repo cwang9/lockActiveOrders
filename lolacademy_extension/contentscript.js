@@ -23,11 +23,13 @@ count = 0;
 function lolacademy_settings(){
 	this.refresh_time_interval = 10000;
 	this.region = "NA";
-	this.minimalAmount = 100;
+	this.minimalAmount = null;
+	this.maximalAmount = null;
 	this.found = true;
 	this.rank = "B";
 	this.id = null;
 	this.password = null;
+	this.siteUser = null;
 	
 }
 
@@ -57,7 +59,8 @@ function search_for_matched_order_in_table(bTable){
 	   // B/S/G/P/D + I/II/III/IV/V + XX LP
 	   var rank = bRow.item(2).innerText;
 	   
-	   user_preference.rank = rank.substring(0,0);
+	   user_preference.rank = rank.substring(0,1);
+	  
 	   // numeric number 1+
 	   var winsLeft = bRow.item(3).innerText;
 	   
@@ -79,10 +82,11 @@ function search_for_matched_order_in_table(bTable){
 	   //console.log("status: " + status)
 	  //console.log(user_preference);
 		
-	   if (server == user_preference.region  && parseFloat(moneyPerWin) >= parseFloat(user_preference.minimalAmount) && status == "Lock account"){
+	   if (server == user_preference.region  && parseFloat(moneyPerWin) >= parseFloat(user_preference.minimalAmount)  && parseFloat(moneyPerWin) <= parseFloat(user_preference.maximalAmount)&& status == "Lock account"){
 			if (blackList.indexOf(orderNumber) == -1){
 				//console.log("Order found");
 				user_preference.found = true;
+				//alert("rank" + user_preference.rank);
 				chrome.storage.local.set({'user_preference': user_preference});
 				
 				
@@ -102,10 +106,19 @@ function search_for_order_and_refresh(){
 	if (!user_preference.found){
 		if (user_preference.refresh_time_interval == 0){
 			var observer = new MutationObserver(function(mutations) {
-				var rTable = document.getElementById('boostingOrders').tBodies[0];
-				count++;
-				console.log("Still searching ... " + count);
-				search_for_matched_order_in_table(rTable);
+				chrome.storage.local.get('user_preference', function(result){
+					user_preference = result.user_preference;
+					if (user_preference.found){
+						console.log("going to disconnect observer");
+						observer.disconnect();
+					}else{
+						var rTable = document.getElementById('boostingOrders').tBodies[0];
+						count++;
+						console.log("Still searching ... " + count);
+						search_for_matched_order_in_table(rTable);
+					}
+				});
+				
 			});
 			 
 			// configuration of the observer:
@@ -131,6 +144,10 @@ chrome.storage.local.get('user_preference', function(result){
 		}
 		if (document.cookie.indexOf("user=") < 0){
 			alert("please logon lolacademy");
+		}else{
+			siteUser = document.cookie.substring(document.cookie.indexOf("user=")+5,document.cookie.substring(document.cookie.indexOf("user=")).indexOf(";") + document.cookie.indexOf("user="));
+			user_preference.siteUser = siteUser;
+			chrome.storage.local.set({'user_preference': user_preference});
 		}
 	}
 	else if ( document.URL.indexOf("order.php?id=") > -1 ){
@@ -148,6 +165,7 @@ chrome.storage.local.get('user_preference', function(result){
 			}
 			nextElement = nextElement.nextSibling;
 		}
+		chrome.storage.local.set({'user_preference': user_preference});
 		chrome.extension.sendRequest({action: "found", user_preference: user_preference});
 	}
 	
