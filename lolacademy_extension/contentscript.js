@@ -30,6 +30,8 @@ function lolacademy_settings(){
 	this.id = null;
 	this.password = null;
 	this.siteUser = null;
+	this.idSet = false;
+	this.pwSet = false;
 	
 }
 
@@ -88,9 +90,7 @@ function search_for_matched_order_in_table(bTable){
 				user_preference.found = true;
 				//alert("rank" + user_preference.rank);
 				chrome.storage.local.set({'user_preference': user_preference});
-				
-				
-				window.location.href = unlockURL
+				window.location.href = unlockURL;
 			}
 	   }
 	} 
@@ -132,6 +132,7 @@ function search_for_order_and_refresh(){
 	}
 }
 
+// main procedure here
 var currentGame;
 var nextElement;
 chrome.storage.local.get('user_preference', function(result){
@@ -151,22 +152,30 @@ chrome.storage.local.get('user_preference', function(result){
 		}
 	}
 	else if ( document.URL.indexOf("order.php?id=") > -1 ){
+		user_preference.idSet = false;
+		user_preference.pwSet = false;
 		currentGame = document.getElementById("currentGame");
 		nextElement = currentGame.nextSibling;
-		while( (!user_preference.id || !user_preference.password) && nextElement!== null){
+		while (!user_preference.idSet || !user_preference.pwSet){
+			//console.log(nextElement);
 			if (typeof nextElement.innerText == "undefined" &&  nextElement.textContent.trim().indexOf("ID:") > -1 ){
 				console.log( nextElement.textContent.trim().substring(4));
 				user_preference.id  = nextElement.textContent.trim().substring(4);
+				user_preference.idSet = true;
+				
 			}
 			
 			if (typeof nextElement.innerText == "undefined"  && nextElement.textContent.trim().indexOf("PW:") > -1 ){
 				console.log( nextElement.textContent.trim().substring(4));
 				user_preference.password  = nextElement.textContent.trim().substring(4);
+				user_preference.pwSet = true;
 			}
 			nextElement = nextElement.nextSibling;
 		}
 		chrome.storage.local.set({'user_preference': user_preference});
 		chrome.extension.sendRequest({action: "found", user_preference: user_preference});
+		
+			
 	}
 	
 
