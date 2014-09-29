@@ -139,17 +139,18 @@ chrome.storage.local.get('user_preference', function(result){
 	user_preference = result.user_preference;
 	
 	if (document.URL.indexOf("activeorders.php") > -1 ){
-		if(!user_preference.found){
-			chrome.extension.sendRequest({action: "start"});
-			search_for_order_and_refresh();
-		}
 		if (document.cookie.indexOf("user=") < 0){
-			alert("please logon lolacademy");
+			alert("please logon lolacademy please");
 		}else{
 			siteUser = document.cookie.substring(document.cookie.indexOf("user=")+5,document.cookie.substring(document.cookie.indexOf("user=")).indexOf(";") + document.cookie.indexOf("user="));
 			user_preference.siteUser = siteUser;
 			chrome.storage.local.set({'user_preference': user_preference});
 		}
+		if(!user_preference.found){
+			chrome.extension.sendRequest({action: "start"});
+			search_for_order_and_refresh();
+		}
+		
 	}
 	else if ( document.URL.indexOf("order.php?id=") > -1 ){
 		user_preference.idSet = false;
