@@ -41,7 +41,7 @@ function search_for_matched_order_in_table(bTable){
 	blackList = new Array()
 	//console.log("search_for_matched_order_in_table...");
 	// way to add "bad" orders
-	//blackList.push("15546")
+	blackList.push("16487")
 
 	//gets rows of table
 	var rowLength = bTable.rows.length;
@@ -136,47 +136,56 @@ function search_for_order_and_refresh(){
 var currentGame;
 var nextElement;
 chrome.storage.local.get('user_preference', function(result){
-	user_preference = result.user_preference;
-	
-	if (document.URL.indexOf("activeorders.php") > -1 ){
-		if (document.cookie.indexOf("user=") < 0){
-			alert("please logon lolacademy please");
-		}else{
-			siteUser = document.cookie.substring(document.cookie.indexOf("user=")+5,document.cookie.substring(document.cookie.indexOf("user=")).indexOf(";") + document.cookie.indexOf("user="));
-			user_preference.siteUser = siteUser;
-			chrome.storage.local.set({'user_preference': user_preference});
-		}
-		if(!user_preference.found){
-			chrome.extension.sendRequest({action: "start"});
-			search_for_order_and_refresh();
-		}
-		
+
+	if (chrome.runtime.lastError){
+		user_preference = new lolacademy_settings();
 	}
-	else if ( document.URL.indexOf("order.php?id=") > -1 ){
-		user_preference.idSet = false;
-		user_preference.pwSet = false;
-		currentGame = document.getElementById("currentGame");
-		nextElement = currentGame.nextSibling;
-		while (!user_preference.idSet || !user_preference.pwSet){
-			//console.log(nextElement);
-			if (typeof nextElement.innerText == "undefined" &&  nextElement.textContent.trim().indexOf("ID:") > -1 ){
-				console.log( nextElement.textContent.trim().substring(4));
-				user_preference.id  = nextElement.textContent.trim().substring(4);
-				user_preference.idSet = true;
-				
+	//console.log(result);
+	//console.log(result.user_preference);
+	user_preference = result.user_preference;
+	if (typeof user_preference != "undefined"){
+		if (document.URL.indexOf("activeorders.php") > -1 ){
+			if (document.cookie.indexOf("user=") < 0){
+				alert("please logon lolacademy please");
+			}else{
+				//console.log("Cookies: " + document.cookie);
+				var siteUser = document.cookie.substring(document.cookie.indexOf("user=")+5,document.cookie.substring(document.cookie.indexOf("user=")).indexOf(";") + document.cookie.indexOf("user="));
+				console.log(user_preference);
+				user_preference.siteUser = siteUser;
+				chrome.storage.local.set({'user_preference': user_preference});
+			}
+			if(!user_preference.found){
+				chrome.extension.sendRequest({action: "start"});
+				search_for_order_and_refresh();
 			}
 			
-			if (typeof nextElement.innerText == "undefined"  && nextElement.textContent.trim().indexOf("PW:") > -1 ){
-				console.log( nextElement.textContent.trim().substring(4));
-				user_preference.password  = nextElement.textContent.trim().substring(4);
-				user_preference.pwSet = true;
-			}
-			nextElement = nextElement.nextSibling;
 		}
-		chrome.storage.local.set({'user_preference': user_preference});
-		chrome.extension.sendRequest({action: "found", user_preference: user_preference});
-		
+		else if ( document.URL.indexOf("order.php?id=") > -1 ){
+			user_preference.idSet = false;
+			user_preference.pwSet = false;
+			currentGame = document.getElementById("currentGame");
+			nextElement = currentGame.nextSibling;
+			while (!user_preference.idSet || !user_preference.pwSet){
+				//console.log(nextElement);
+				if (typeof nextElement.innerText == "undefined" &&  nextElement.textContent.trim().indexOf("ID:") > -1 ){
+					console.log( nextElement.textContent.trim().substring(4));
+					user_preference.id  = nextElement.textContent.trim().substring(4);
+					user_preference.idSet = true;
+					
+				}
+				
+				if (typeof nextElement.innerText == "undefined"  && nextElement.textContent.trim().indexOf("PW:") > -1 ){
+					console.log( nextElement.textContent.trim().substring(4));
+					user_preference.password  = nextElement.textContent.trim().substring(4);
+					user_preference.pwSet = true;
+				}
+				nextElement = nextElement.nextSibling;
+			}
+			chrome.storage.local.set({'user_preference': user_preference});
+			chrome.extension.sendRequest({action: "found", user_preference: user_preference});
 			
+				
+		}
 	}
 	
 

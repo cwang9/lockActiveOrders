@@ -1,4 +1,23 @@
 
+
+
+function lolacademy_settings(){
+	this.refresh_time_interval = 0;
+	this.region = "NA";
+	this.minimalAmount = 2;
+	this.maximalAmount = 40;
+	this.found = true;
+	this.rank = "B";
+	this.id = null;
+	this.password = null;
+	this.siteUser = null;
+	this.idSet = false;
+	this.pwSet = false;
+	
+}
+
+
+
 var user_preference ;
 var tab_id;
 function isNumber(n) {
@@ -45,11 +64,19 @@ window.onload = function(){
 	//});
 	*/
 	chrome.storage.local.get('user_preference', function(result){
-		user_preference = result.user_preference;
+	
+
+		if (typeof result.user_preference == "undefined"){
+			user_preference = new lolacademy_settings();
+		}
+		else{
+			user_preference = result.user_preference;
+		}
 		document.getElementById("refresh_interval").value =  user_preference.refresh_time_interval;
 		document.getElementById("min_price").value =  user_preference.minimalAmount;
 		document.getElementById("max_price").value =  user_preference.maximalAmount;
 		document.getElementById("region").value =  user_preference.region;
+		
 		
 	});
 	
