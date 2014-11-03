@@ -26,22 +26,25 @@ function lolacademy_settings(){
 	this.minimalAmount = null;
 	this.maximalAmount = null;
 	this.found = true;
+	this.fromActiveOrderPage = false;
 	this.rank = "B";
 	this.id = null;
 	this.password = null;
 	this.siteUser = null;
 	this.idSet = false;
 	this.pwSet = false;
+	this.blackList = null;
+	
 	
 }
 
 var user_preference = new lolacademy_settings();
 
 function search_for_matched_order_in_table(bTable){
-	blackList = new Array()
+
 	//console.log("search_for_matched_order_in_table...");
 	// way to add "bad" orders
-	blackList.push("16487")
+
 
 	//gets rows of table
 	var rowLength = bTable.rows.length;
@@ -56,6 +59,7 @@ function search_for_matched_order_in_table(bTable){
 	   if (orderNumber.length != 5){
 			continue;
 	   }
+	   //console.log("orderNumber: " + orderNumber);
 	   // NA/OCE/TW/EUW
 	   var server = bRow.item(1).innerText;
 	   // B/S/G/P/D + I/II/III/IV/V + XX LP
@@ -85,16 +89,111 @@ function search_for_matched_order_in_table(bTable){
 	  //console.log(user_preference);
 		
 	   if (server == user_preference.region  && parseFloat(moneyPerWin) >= parseFloat(user_preference.minimalAmount)  && parseFloat(moneyPerWin) <= parseFloat(user_preference.maximalAmount)&& status == "Lock account"){
-			if (blackList.indexOf(orderNumber) == -1){
+			if (!user_preference.blackList){
+				user_preference.blackList = new Array()
+			}
+			
+			if (user_preference.blackList.indexOf(orderNumber) == -1){
 				//console.log("Order found");
 				user_preference.found = true;
+				user_preference.fromActiveOrderPage = true;
 				//alert("rank" + user_preference.rank);
+				//alert(user_preference);
 				chrome.storage.local.set({'user_preference': user_preference});
+				
 				window.location.href = unlockURL;
+			}else{
+				console.log("Blocked by blacklist");
 			}
 	   }
 	} 
 }
+
+// Larry call it / add it to menu later
+function clear_black_list(){
+	user_preference.blackList = null;
+	chrome.storage.local.set({'user_preference': user_preference});
+	console.log(user_preference.blackList);
+}
+
+// add and remove
+function add_black_list(){
+	var tableWrapper = document.getElementById('boostingOrders');
+	var tblHeadObj = tableWrapper.tHead;
+	
+	if (tblHeadObj.innerText.indexOf("Block") >= 0){
+		return;
+	}
+	
+	var newTH = document.createElement('th');
+	tblHeadObj.rows[0].appendChild(newTH);
+	newTH.innerHTML = 'Block';
+	
+		
+	var tblBodyObj = tableWrapper.tBodies[0];
+	for (var i=0; i<tblBodyObj.rows.length; i++) {
+
+
+		var newCell = tblBodyObj.rows[i].insertCell(-1);
+		orderNumber = tblBodyObj.rows[i].cells.item(0).innerText;
+		(function(orderNumber){
+			if (!user_preference.blackList){
+				user_preference.blackList = new Array()
+			}
+			if (user_preference.blackList.indexOf(orderNumber) == -1){
+				newCell.innerHTML = '<a class="small flat warning button" style="margin-bottom: -15px; border-radius: 0px;">Block account</a>';
+				newCell.addEventListener('click', function(){
+					if (!user_preference.blackList){
+						user_preference.blackList = new Array()
+					}
+					user_preference.blackList.push(orderNumber);
+					console.log(user_preference.blackList);
+					alert("Blocked this account for auto-locking");
+					chrome.storage.local.set({'user_preference': user_preference});
+					//tableWrapper.insertRow(0);
+				});
+			}else{
+				newCell.innerHTML = '<a class="small flat warning button" style="margin-bottom: -15px; border-radius: 0px;">Unblock account</a>';
+				newCell.addEventListener('click', function(){
+					if (!user_preference.blackList){
+						user_preference.blackList = new Array()
+					}
+					user_preference.blackList.pop(orderNumber);
+					console.log(user_preference.blackList);
+					alert("unblocked this account for auto-locking");
+					chrome.storage.local.set({'user_preference': user_preference});
+					
+				});
+
+			
+			}
+		})(orderNumber);
+	}
+}
+
+
+function look_for_table_update(){
+	
+
+	//alert("refresh_time_interval" +refresh_time_interval);
+	var bTable = document.getElementById('boostingOrders').tBodies[0];
+    
+	   
+	var tableWrapper = document.getElementById('boostingOrders');
+	
+	var observer = new MutationObserver(function(mutations) {
+		add_black_list();
+	});
+	// configuration of the observer:
+	var config = { attributes: true, childList: true, characterData: true, subtrue: true };
+	//console.log("going to start observer");
+	// pass in the target node, as well as the observer options
+	observer.observe(tableWrapper, config);
+	
+
+
+}
+
 
 function search_for_order_and_refresh(){
 	//alert("refresh_time_interval" +refresh_time_interval);
@@ -142,9 +241,25 @@ chrome.storage.local.get('user_preference', function(result){
 	}
 	//console.log(result);
 	//console.log(result.user_preference);
-	user_preference = result.user_preference;
+	
+	var input = "";
+	document.body.addEventListener('keypress',function(ev){
+		input += String.fromCharCode(ev.keyCode);
+		//console.log(input);
+		if(input == "clearblacklist"){
+			clear_black_list();
+			input = "";
+		}
+	});
+	if (typeof result.user_preference != "undefined"){
+		user_preference = result.user_preference;
+	}else{
+		user_preference = new lolacademy_settings();
+	}
 	if (typeof user_preference != "undefined"){
 		if (document.URL.indexOf("activeorders.php") > -1 ){
+			add_black_list();
+			look_for_table_update();
 			if (document.cookie.indexOf("user=") < 0){
 				alert("please logon lolacademy please");
 			}else{
@@ -161,6 +276,8 @@ chrome.storage.local.get('user_preference', function(result){
 			
 		}
 		else if ( document.URL.indexOf("order.php?id=") > -1 ){
+			console.log("in order.php page");
+			console.log(user_preference);
 			user_preference.idSet = false;
 			user_preference.pwSet = false;
 			currentGame = document.getElementById("currentGame");
@@ -182,10 +299,17 @@ chrome.storage.local.get('user_preference', function(result){
 				nextElement = nextElement.nextSibling;
 			}
 			chrome.storage.local.set({'user_preference': user_preference});
-			chrome.extension.sendRequest({action: "found", user_preference: user_preference});
+			if (user_preference.fromActiveOrderPage){
+				user_preference.fromActiveOrderPage = false;
+				chrome.storage.local.set({'user_preference': user_preference});
+				chrome.extension.sendRequest({action: "found", user_preference: user_preference});
+			}
+			
 			
 				
 		}
+	}else{
+		console.log("User_preference is undefined");
 	}
 	
 

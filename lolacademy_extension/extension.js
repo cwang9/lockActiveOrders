@@ -13,7 +13,8 @@ function lolacademy_settings(){
 	this.siteUser = null;
 	this.idSet = false;
 	this.pwSet = false;
-	
+	this.fromActiveOrderPage = false;
+	this.blackList = null;
 }
 
 
