@@ -116,6 +116,12 @@ function clear_black_list(){
 	console.log(user_preference.blackList);
 }
 
+function reset(){
+	user_preference = null;
+	chrome.storage.local.set({'user_preference': user_preference});
+	
+}
+
 // add and remove
 function add_black_list(){
 	var tableWrapper = document.getElementById('boostingOrders');
@@ -140,33 +146,45 @@ function add_black_list(){
 			if (!user_preference.blackList){
 				user_preference.blackList = new Array()
 			}
-			if (user_preference.blackList.indexOf(orderNumber) == -1){
-				newCell.innerHTML = '<a class="small flat warning button" style="margin-bottom: -15px; border-radius: 0px;">Block account</a>';
-				newCell.addEventListener('click', function(){
-					if (!user_preference.blackList){
-						user_preference.blackList = new Array()
-					}
-					user_preference.blackList.push(orderNumber);
-					console.log(user_preference.blackList);
-					alert("Blocked this account for auto-locking");
-					chrome.storage.local.set({'user_preference': user_preference});
-					//tableWrapper.insertRow(0);
-				});
-			}else{
-				newCell.innerHTML = '<a class="small flat warning button" style="margin-bottom: -15px; border-radius: 0px;">Unblock account</a>';
-				newCell.addEventListener('click', function(){
-					if (!user_preference.blackList){
-						user_preference.blackList = new Array()
-					}
-					user_preference.blackList.pop(orderNumber);
-					console.log(user_preference.blackList);
-					alert("unblocked this account for auto-locking");
-					chrome.storage.local.set({'user_preference': user_preference});
-					
-				});
-
 			
+			a = document.createElement('a');
+			
+			a.style = "margin-bottom: -15px; border-radius: 10px";
+			if (user_preference.blackList.indexOf(orderNumber) == -1){
+				a.className = "small flat warning icon-ban-circle button";
+				a.innerHTML = "&nbsp;Block account";
+			}else{
+				a.className = "small flat warning icon-ok-circle button";
+				a.innerHTML = "&nbsp;Unblock account";
 			}
+			newCell.appendChild(a);
+
+			//newCell.innerHTML = '<a class="small flat warning button" style="margin-bottom: -15px; border-radius: 0px;">Block account</a>';
+			newCell.addEventListener('click', function(){
+				if (!user_preference.blackList){
+					user_preference.blackList = new Array()
+				}
+				//console.log(this);
+				//console.log(newCell);
+				var content = this.getElementsByTagName("a")[0];
+				if (content.innerHTML.trim() == "&nbsp;Block account"){
+					user_preference.blackList.push(orderNumber);
+					content.className = "small flat warning icon-ok-circle button";
+					//alert("Blocked this account for auto-locking");
+					content.innerHTML = "&nbsp;Unblock account";
+				}else{
+					user_preference.blackList.pop(orderNumber);
+					content.className ="small flat warning icon-ban-circle button";
+					//alert("Unblocked this account for auto-locking");
+					content.innerHTML = "&nbsp;Block account";
+				
+				}
+				chrome.storage.local.set({'user_preference': user_preference});
+				
+				//console.log(user_preference.blackList);
+				//tableWrapper.insertRow(0);
+			});
+			
 		})(orderNumber);
 	}
 }
@@ -248,6 +266,10 @@ chrome.storage.local.get('user_preference', function(result){
 		//console.log(input);
 		if(input == "clearblacklist"){
 			clear_black_list();
+			input = "";
+		}
+		if ( input == "reset"){
+			reset();
 			input = "";
 		}
 	});

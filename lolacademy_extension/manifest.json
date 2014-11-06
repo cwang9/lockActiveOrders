@@ -1,7 +1,7 @@
 {
 	"name": "lolacademy Extension",
 	"short_name" : "lolaca",
-	"version": "1.2.1",
+	"version": "1.2.4",
 	"manifest_version": 2,
 	"description": "to auto lock lol academy account",
 	"browser_action": {
