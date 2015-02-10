@@ -18,6 +18,7 @@ var sell_btn_toggle;
 */
 
 var count;
+var countdownTimer;
 count = 0;
 
 function lolacademy_settings(){
@@ -34,7 +35,7 @@ function lolacademy_settings(){
 	this.idSet = false;
 	this.pwSet = false;
 	this.blackList = null;
-	
+	this.countdown_interval = 0;
 	
 }
 
@@ -88,7 +89,7 @@ function search_for_matched_order_in_table(bTable){
 	   //console.log("status: " + status)
 	  //console.log(user_preference);
 		
-	   if (server == user_preference.region  && parseFloat(moneyPerWin) >= parseFloat(user_preference.minimalAmount)  && parseFloat(moneyPerWin) <= parseFloat(user_preference.maximalAmount)&& status == "Lock account"){
+	   if ( user_preference.region.indexOf(server) >=0  && parseFloat(moneyPerWin) >= parseFloat(user_preference.minimalAmount)  && parseFloat(moneyPerWin) <= parseFloat(user_preference.maximalAmount)&& status == "Lock account"){
 			if (!user_preference.blackList){
 				user_preference.blackList = new Array()
 			}
@@ -122,6 +123,37 @@ function reset(){
 	
 }
 
+function add_timer(){
+	var newDiv  = document.createElement("div");
+	newDiv.innerHTML = '<div class="clock flip-clock-wrapper" style="display:none;margin:2em;"><span class="flip-clock-divider hours"><span class="flip-clock-label">Hours</span></span><ul class="flip "><li class="flip-clock-before"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">9</div></div><div class="down"><div class="shadow"></div><div class="inn">9</div></div></a></li><li class="flip-clock-active"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">0</div></div><div class="down"><div class="shadow"></div><div class="inn">0</div></div></a></li></ul><ul class="flip "><li class="flip-clock-before"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">9</div></div><div class="down"><div class="shadow"></div><div class="inn">9</div></div></a></li><li class="flip-clock-active"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">0</div></div><div class="down"><div class="shadow"></div><div class="inn">0</div></div></a></li></ul><span class="flip-clock-divider minutes"><span class="flip-clock-label">Minutes</span><span class="flip-clock-dot top"></span><span class="flip-clock-dot bottom"></span></span><ul class="flip "><li class="flip-clock-before"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">9</div></div><div class="down"><div class="shadow"></div><div class="inn">9</div></div></a></li><li class="flip-clock-active"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">0</div></div><div class="down"><div class="shadow"></div><div class="inn">0</div></div></a></li></ul><ul class="flip "><li class="flip-clock-before"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">9</div></div><div class="down"><div class="shadow"></div><div class="inn">9</div></div></a></li><li class="flip-clock-active"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">0</div></div><div class="down"><div class="shadow"></div><div class="inn">0</div></div></a></li></ul><span class="flip-clock-divider seconds"><span class="flip-clock-label">Seconds</span><span class="flip-clock-dot top"></span><span class="flip-clock-dot bottom"></span></span><ul class="flip "><li class="flip-clock-before"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">9</div></div><div class="down"><div class="shadow"></div><div class="inn">9</div></div></a></li><li class="flip-clock-active"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">0</div></div><div class="down"><div class="shadow"></div><div class="inn">0</div></div></a></li></ul><ul class="flip  play"><li class="flip-clock-before"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">6</div></div><div class="down"><div class="shadow"></div><div class="inn">6</div></div></a></li><li class="flip-clock-active"><a href="#"><div class="up"><div class="shadow"></div><div class="inn">7</div></div><div class="down"><div class="shadow"></div><div class="inn">7</div></div></a></li></ul></div>';
+	newDiv.style.position = "absolute";
+	newDiv.style.top = "300px";
+	var b = document.body
+	b.appendChild(newDiv);
+	
+}
+
+function start_timer(){
+	if( user_preference.countdown_interval != 0){
+		var clock;
+		clock = $('.clock')[0];
+		clock.style.display = "block";
+		clock = $('.clock').FlipClock(user_preference.countdown_interval,{
+			clockFace: 'HourlyCounter',
+			countdown: true
+		});
+	}else{
+		var clock;
+		clock = $('.clock')[0];
+		clock.style.display = "none";
+	}
+}
+
+function stop_timer(){
+	var clock;
+		clock = $('.clock')[0];
+		clock.style.display = "none";
+}
 // add and remove
 function add_black_list(){
 	var tableWrapper = document.getElementById('boostingOrders');
@@ -212,8 +244,11 @@ function look_for_table_update(){
 
 }
 
+// added by larry , the timer feature
 
 function search_for_order_and_refresh(){
+	stop_timer();
+	chrome.extension.sendRequest({action: "start"});
 	//alert("refresh_time_interval" +refresh_time_interval);
 	var bTable = document.getElementById('boostingOrders').tBodies[0];
     search_for_matched_order_in_table(bTable);
@@ -244,7 +279,7 @@ function search_for_order_and_refresh(){
 			// pass in the target node, as well as the observer options
 			observer.observe(tableWrapper, config);
 		}else{
-			setTimeout(function(){location.reload();} , user_preference.refresh_time_interval);
+			countdownTimer = setTimeout(function(){location.reload();} , user_preference.refresh_time_interval);
 		}
 	}
 }
@@ -279,8 +314,11 @@ chrome.storage.local.get('user_preference', function(result){
 		user_preference = new lolacademy_settings();
 	}
 	if (typeof user_preference != "undefined"){
+		
 		if (document.URL.indexOf("activeorders.php") > -1 ){
 			add_black_list();
+			add_timer();
+			
 			look_for_table_update();
 			if (document.cookie.indexOf("user=") < 0){
 				alert("please logon lolacademy please");
@@ -292,8 +330,9 @@ chrome.storage.local.get('user_preference', function(result){
 				chrome.storage.local.set({'user_preference': user_preference});
 			}
 			if(!user_preference.found){
-				chrome.extension.sendRequest({action: "start"});
-				search_for_order_and_refresh();
+				start_timer();
+				setTimeout(search_for_order_and_refresh, user_preference.countdown_interval* 1000);
+		
 			}
 			
 		}
@@ -346,18 +385,22 @@ chrome.extension.onRequest.addListener(function(request, sender, callback)
     {
         case "start":
 
-			chrome.extension.sendRequest({action: "start"});
+			
 			chrome.storage.local.get('user_preference', function(result){
 				user_preference = result.user_preference;
 				if (document.URL.indexOf("activeorders.php") > -1 ){
+					
 					if(!user_preference.found){
-						search_for_order_and_refresh();
+						start_timer();
+						countdownTimer = setTimeout(search_for_order_and_refresh, user_preference.countdown_interval * 1000);
 					}
 				}
 
 			});
 			break;
 		case "stop":
+			clearTimeout(countdownTimer);
+			stop_timer();
 			chrome.storage.local.get('user_preference', function(result){
 				user_preference.found = true;
 				chrome.storage.local.set({'user_preference':user_preference});

@@ -1,7 +1,7 @@
 {
 	"name": "lolacademy Extension",
 	"short_name" : "lolaca",
-	"version": "1.2.4",
+	"version": "1.3.0",
 	"manifest_version": 2,
 	"description": "to auto lock lol academy account",
 	"browser_action": {
@@ -16,7 +16,8 @@
 
 	"content_scripts": [ {
 	  "matches": ["*://www.lol-academy.net/*"],
-	  "js": ["contentscript.js"],
+	  "css": ["flipclock.css"],
+	  "js": ["jquery.min.js","flipclock.js","contentscript.js"],
 	  "run_at":"document_end"
 	} ],
 	"permissions": [

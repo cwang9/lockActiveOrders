@@ -15,6 +15,7 @@ function lolacademy_settings(){
 	this.pwSet = false;
 	this.fromActiveOrderPage = false;
 	this.blackList = null;
+	this.countdown_interval = 0;
 }
 
 
@@ -26,23 +27,26 @@ function isNumber(n) {
 }
 
 function start_extension(){
+	console.log("start_extension");
 	var form_time_interval = document.getElementById("refresh_interval").value;
 	if( isNumber(form_time_interval)){
 		refresh_time_interval = 1000 * form_time_interval;
 	}
-	
+	var countdown_interval = document.getElementById("countdown_interval").value;
 	var minimalAmount =  document.getElementById("min_price").value;
 	var maximalAmount =  document.getElementById("max_price").value
 	var region = document.getElementById("region").value;
 	if (region == null){
 		region = "NA";
 	}
-	
+	console.log("countdown_interval: " + countdown_interval);
+	user_preference.countdown_interval = countdown_interval;
 	user_preference.refresh_time_interval= refresh_time_interval;
 	user_preference.region = region;
 	user_preference.minimalAmount= minimalAmount;
 	user_preference.maximalAmount= maximalAmount;
 	user_preference.found = false;
+
 	chrome.storage.local.set({'user_preference':user_preference});
 	
 	chrome.tabs.sendRequest(tab_id, {action: "start"}, function(response){});
@@ -53,6 +57,8 @@ function start_extension(){
 	});
 	
 	*/
+	// set clock to run 
+
 }
 
 window.onload = function(){
@@ -74,10 +80,11 @@ window.onload = function(){
 			user_preference = result.user_preference;
 		}
 		document.getElementById("refresh_interval").value =  user_preference.refresh_time_interval;
+		document.getElementById("countdown_interval").value =  user_preference.countdown_interval;
 		document.getElementById("min_price").value =  user_preference.minimalAmount;
 		document.getElementById("max_price").value =  user_preference.maximalAmount;
 		document.getElementById("region").value =  user_preference.region;
-		
+	
 		
 	});
 	
